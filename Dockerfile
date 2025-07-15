@@ -1,7 +1,6 @@
-# FROM python:3.11-slim
-FROM pytorch/pytorch:2.7.1-cuda12.6-cudnn9-devel
+FROM docker.io/pytorch/pytorch:2.7.1-cuda12.6-cudnn9-devel
 
-ENV XDG_RUNTIME_DIR=""
+# ENV XDG_RUNTIME_DIR=""
 
 WORKDIR /app
 
@@ -20,7 +19,6 @@ RUN pip install hydra-core
 RUN pip install opencv-python pillow
 
 RUN pip install flash-attn --no-build-isolation
-# RUN pip install mamba-ssm --no-build-isolation
 
 RUN export MAMBA_FORCE_BUILD=TRUE && \
     cd mamba && \

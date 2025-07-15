@@ -12,6 +12,12 @@ This repository is a fork of the official implementation of <br>
 podman build -t flashdepth .
 ```
 
+## Usage
+
+```bash
+./docker-flash-depth.sh -c ../../FlashDepth/configs/ -o /tmp/output/ -i ../../FlashDepth/examples/video1.mp4 
+```
+
 
 ## Downloading Pretrained Models 
 We provide three checkpoints on huggingface. They correspond to [FlashDepth (Full)](https://huggingface.co/Eyeline-Research/FlashDepth/tree/main/flashdepth), [FlashDepth-L](https://huggingface.co/Eyeline-Research/FlashDepth/tree/main/flashdepth-l), and [FlashDepth-S](https://huggingface.co/Eyeline-Research/FlashDepth/tree/main/flashdepth-s), respectively, as referenced in the paper. Generally, FlashDepth-L is most accurate and FlashDepth (Full) is fastest, but we recommend using FlashDepth-L when the input resolution is low (e.g. short side less than 518).
