@@ -3,17 +3,15 @@
 [**Paper**](https://arxiv.org/abs/2504.07093) | [**Project Page**](https://eyeline-research.github.io/FlashDepth/) <br>
 
 
-This repository contains the official implementation of <br>
+This repository is a fork of the official implementation of <br>
 **FlashDepth: Real-time Streaming Video Depth Estimation at 2K Resolution (ICCV 2025)** 
 
-## Installation
-We recommend creating a [conda](https://www.anaconda.com/) environment then installing the required packages using our `setup_env.sh` script. Note that the mamba package should be installed from our local folder and the torch version should be 2.4 (as of early May 2025, Mamba2 does not work if compiling torch 2.5 and above).
+## Image Build
 
+```bash
+podman build -t flashdepth .
 ```
-conda create -n flashdepth python=3.11 --yes
-conda activate flashdepth
-bash setup_env.sh
-```
+
 
 ## Downloading Pretrained Models 
 We provide three checkpoints on huggingface. They correspond to [FlashDepth (Full)](https://huggingface.co/Eyeline-Research/FlashDepth/tree/main/flashdepth), [FlashDepth-L](https://huggingface.co/Eyeline-Research/FlashDepth/tree/main/flashdepth-l), and [FlashDepth-S](https://huggingface.co/Eyeline-Research/FlashDepth/tree/main/flashdepth-s), respectively, as referenced in the paper. Generally, FlashDepth-L is most accurate and FlashDepth (Full) is fastest, but we recommend using FlashDepth-L when the input resolution is low (e.g. short side less than 518).
