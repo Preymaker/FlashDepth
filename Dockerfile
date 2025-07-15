@@ -1,7 +1,5 @@
 FROM docker.io/pytorch/pytorch:2.7.1-cuda12.6-cudnn9-devel
 
-# ENV XDG_RUNTIME_DIR=""
-
 WORKDIR /app
 
 COPY ./configs ./configs

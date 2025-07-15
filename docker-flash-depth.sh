@@ -81,7 +81,7 @@ if [ -z "$XDG_RUNTIME_DIR" ] || [ ! -d "$XDG_RUNTIME_DIR" ] || [ "$(stat -c %u "
 fi
 
 # TODO: I need to fix this so it doesn't use `sudo`
-sudo podman run --rm \
+podman run --rm \
 	--device nvidia.com/gpu=all --security-opt=label=disable \
 	-e TORCHINDUCTOR_DISABLE_BF16=1 \
 	-v "$config_path":/app/configs \
