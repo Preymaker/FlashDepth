@@ -67,10 +67,10 @@ fi
 # Extract the input file name
 input_filename="$(basename "$input_file")"
 
-echo "$config_path"
-echo "$output_dir"
-echo "$input_file"
-echo "$input_filename"
+# echo "$config_path"
+# echo "$output_dir"
+# echo "$input_file"
+# echo "$input_filename"
 
 # Check if XDG_RUNTIME_DIR is set and valid
 if [ -z "$XDG_RUNTIME_DIR" ] || [ ! -d "$XDG_RUNTIME_DIR" ] || [ "$(stat -c %u "$XDG_RUNTIME_DIR" 2>/dev/null)" != "$(id -u)" ]; then
