@@ -3,18 +3,19 @@ output_dir=""
 input_file=""
 
 display_help() {
-	echo "Usage: $0 [OPTIONS]"
-	echo
-	echo "Options:"
-	echo "  -c, --config-path <path>   Path to the configuration directory."
-	echo "  -o, --output-dir <dir>     Directory where output will be saved."
-	echo "  -i, --input <file>         Input file to process."
-	echo "  -h, --help                 Show this help message and exit."
-	echo
-	echo "Example:"
-	echo "  $0 -c ./config.json -i input.txt -o ./out"
-	echo
-	exit 1
+    echo "Usage: $0 [OPTIONS]"
+    echo
+    echo "Options:"
+    echo "  -c, --config-path <path>   Path to the configuration directory."
+    echo "  -o, --output-dir <dir>     Directory where output will be saved."
+    echo "  -i, --input <file|dir>     Input video file or directory with .npy image files."
+    echo "  -h, --help                 Show this help message and exit."
+    echo
+    echo "Examples:"
+    echo "  $0 -c configs/ -i examples/video.mp4 -o output/"
+    echo "  $0 -c configs/ -i examples/npy_frames/ -o output/"
+    echo
+    exit 1
 }
 
 while [ "$1" != "" ]; do
@@ -57,11 +58,19 @@ else
 	output_dir="$(cd "$output_dir" && pwd)"
 fi
 
-if [ ! -f "$input_file" ]; then
-	echo "Error: input_file '$input_file' is not a valid file."
-	exit 1
+if [ ! -f "$input_file" ] && [ ! -d "$input_file" ]; then
+    echo "Error: input_file '$input_file' is not a valid file or directory."
+    exit 1
 else
-	input_file="$(cd "$(dirname "$input_file")" && pwd)/$(basename "$input_file")"
+    if [ -f "$input_file" ]; then
+        # Single file
+        input_file="$(cd "$(dirname "$input_file")" && pwd)/$(basename "$input_file")"
+        input_filename="$(basename "$input_file")"
+    else
+        # Directory
+        input_file="$(cd "$input_file" && pwd)"
+        input_filename="$(basename "$input_file")"
+    fi
 fi
 
 # Extract the input file name
