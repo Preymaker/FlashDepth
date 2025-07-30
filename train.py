@@ -53,7 +53,8 @@ def validation(cfg, model, train_step, test_dataloader):
 
         with torch.cuda.amp.autocast(dtype=torch.bfloat16):
             gif_path = f'{savepath}/{os.path.basename(cfg.config_dir.rstrip("/"))}_{train_step}_idx-{test_idx * world_size + rank}.gif'
-            
+            #TODO: remove this hack
+            logging.info("EVAL FLAGS:\n" + OmegaConf.to_yaml(cfg.eval))
             loss, grid = model(
                 (video, gt_depth), 
                 use_mamba=cfg.model.use_mamba, 

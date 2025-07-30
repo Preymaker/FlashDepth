@@ -310,7 +310,8 @@ class FlashDepth(nn.Module):
     
     @torch.no_grad()
     def forward(self, batch, use_mamba, gif_path, resolution, out_mp4 ,save_depth_npy=False, save_vis_map=False, **kwargs):
-        
+        logging.info(f"DEBUG>>> ENTER forward: save_depth_npy={save_depth_npy}  out_mp4={out_mp4}  kwargs={kwargs}")
+
         # both have shape (B, T, C, H, W)
         if isinstance(batch, list) or isinstance(batch, tuple):
             video, gt_depth = batch 
@@ -356,8 +357,14 @@ class FlashDepth(nn.Module):
                 # else:
                 loss += F.l1_loss(pred_depth[valid_mask], gt_frame[valid_mask])
 
-            preds.append(pred_depth)
-        
+            #TODO: revert
+            #preds.append(pred_depth)
+                # Move prediction to CPU immediately
+            preds.append(pred_depth.cpu())
+            
+            # Clear GPU memory
+            del frame, dpt_features, pred_depth
+            torch.cuda.empty_cache()
         if kwargs.get('print_time', False):
             try:
                 torch.cuda.synchronize()
@@ -375,10 +382,13 @@ class FlashDepth(nn.Module):
 
 
 
-
     @torch.compiler.disable
     def save_and_return(self, video, gt_depth, preds, loss, save_depth_npy, gif_path, save_vis_map, out_mp4, resolution, kwargs):
 
+        print(f"DEBUG: save_depth_npy = {save_depth_npy}")
+        print(f"DEBUG: out_video = {kwargs.get('out_video', True)}")
+        print(f"DEBUG: gif_path = {gif_path}")
+    
         grid = None
         if gt_depth is not None and kwargs.get('use_metrics', True):
             l1_loss = loss / video.shape[1]
@@ -389,19 +399,47 @@ class FlashDepth(nn.Module):
             loss = compute_depth_metrics(preds_tensor.squeeze(0), gt_depth.squeeze(0))
             loss['l1_loss'] = l1_loss.item()
 
-        
+    
         if save_depth_npy:
+            print("DEBUG: Entering npy saving block")
+
             test_idx = gif_path.rstrip('.gif').split('_')[-1]
-            npy_path = os.path.join(os.path.dirname(gif_path), 'depth_npy_files') #, test_idx)
+            npy_path = os.path.join(os.path.dirname(gif_path), 'depth_npy_files')
+            print(f"DEBUG: npy_path = {npy_path}")
+
             os.makedirs(npy_path, exist_ok=True)
+            
+            # Process and save npy files one by one to avoid memory buildup
             for i in range(len(preds)):
-                np.save(f'{npy_path}/frame_{i}.npy', preds[i].cpu().float().numpy().squeeze(0))
+                print(f'Saving depth npy for frame {i} at {npy_path}/frame_{i}.npy')
+                # Move to CPU and convert to numpy immediately
+                pred_cpu = preds[i].cpu().float().numpy().squeeze(0)
+                np.save(f'{npy_path}/frame_{i}.npy', pred_cpu)
+                
+                # Clear the prediction from GPU memory immediately
+                del pred_cpu
+                
+                # Clear GPU cache every 10 frames
+                if i % 10 == 0:
+                    torch.cuda.empty_cache()
         
+        # After saving all npy files, clear the preds list to free memory
+        # Move all predictions to CPU to avoid GPU memory issues in video processing
+        preds_cpu = []
+        for pred in preds:
+            preds_cpu.append(pred.cpu())
+            del pred
+        preds = preds_cpu
+        torch.cuda.empty_cache()
+    
         if kwargs.get('out_video', True):
             try:
                 pred0 = []
                 for i in range(len(preds)):
-                    pred0.append(preds[i][0].cpu()) 
+                    if hasattr(preds[i], 'cpu'):
+                        pred0.append(preds[i].cpu() if preds[i].is_cuda else preds[i])
+                    else:
+                        pred0.append(preds[i])
                 pred0 = torch.stack(pred0)
                 pred_save = depth_to_np_arr(pred0)
                 video_save = torch_batch_to_np_arr(video[0])
@@ -413,7 +451,7 @@ class FlashDepth(nn.Module):
                 # inferno heat map
                 if save_vis_map:
                     test_idx = gif_path.rstrip('.gif').split('_')[-1]
-                    vis_map_path = os.path.join(os.path.dirname(gif_path), 'vis_maps') #, test_idx)
+                    vis_map_path = os.path.join(os.path.dirname(gif_path), 'vis_maps')
                     os.makedirs(vis_map_path, exist_ok=True)
                     for i in range(len(pred_save)):
                         Image.fromarray(pred_save[i]).save(f'{vis_map_path}/frame_{i}.png')
@@ -426,7 +464,7 @@ class FlashDepth(nn.Module):
             except Exception as e:
                 logging.info(f"Error in saving video: {e}")
                 pass
-    
+
         return loss, grid
 
 

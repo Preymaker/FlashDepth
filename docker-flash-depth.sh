@@ -81,9 +81,10 @@ if [ -z "$XDG_RUNTIME_DIR" ] || [ ! -d "$XDG_RUNTIME_DIR" ] || [ "$(stat -c %u "
 fi
 
 # TODO: I need to fix this so it doesn't use `sudo`
-podman run --rm \
+sudo podman run --rm \
 	--device nvidia.com/gpu=all --security-opt=label=disable \
 	-e TORCHINDUCTOR_DISABLE_BF16=1 \
+	-e PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True \
 	-v "$config_path":/app/configs \
 	-v "$input_file":/app/examples/"$input_filename" \
 	-v "$output_dir":/app/output \
@@ -91,4 +92,8 @@ podman run --rm \
 	--config-path configs/flashdepth \
 	inference=true \
 	eval.random_input=examples/"$input_filename" \
-	eval.outfolder=output
+	eval.outfolder=/app/output \
+	eval.save_depth_npy=true \
+	eval.out_video=false
+
+	
